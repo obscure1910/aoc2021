@@ -1,8 +1,9 @@
 %dw 2.0
 output application/json
+import * from dw::core::Arrays
 
 var data = payload splitBy "\n" map $ as Number
-var sums = data flatMap ((item, index) -> [0 + index to 2 + index] map data[$]) filter $ != null map sum($)
+var sums = data map sum(slice(data, 0 + $$, 3 + $$))
 var zipWithPrev = ([0] ++ sums) zip sums
 
 ---
