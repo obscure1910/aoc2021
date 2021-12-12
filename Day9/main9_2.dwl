@@ -52,13 +52,15 @@ var lowPoints = (matrix flatMap ((row, yy) ->
 ))
 
 fun basin(value: ValuePoint, visited: Array<ValuePoint>): Array<ValuePoint> = 
-    if((visited contains value) or value.element == highestValue)
+    if((visited contains value))
         [value]
+    else if(value.element == highestValue)
+        []
     else do {
         var neighbours: Array<ValuePoint> = valuesOfAdjacents(value.point)
         ---
-         neighbours reduce ((lowPoint, accumulator = visited + value) -> (accumulator ++ basin(lowPoint, accumulator) distinctBy $ ))
+        neighbours reduce ((lowPoint, accumulator = visited + value) -> (accumulator ++ basin(lowPoint, accumulator) distinctBy $ ))
     }
 
 ---
-lowPoints map ((lowPoint) -> sizeOf(basin(lowPoint, []) filter $.element != highestValue)) orderBy -$ take 3 reduce ((item, accumulator = 1) ->  item * accumulator)
+lowPoints map ((lowPoint) -> sizeOf(basin(lowPoint, []))) orderBy -$ take 3 reduce ((item, accumulator = 1) ->  item * accumulator)
