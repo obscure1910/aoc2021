@@ -18,6 +18,7 @@ var matrix = splitBy(payload, "\n") map($ splitBy "" map $ as Number)
 var upperBoundX = sizeOf(matrix[0]) - 1
 var upperBoundY = sizeOf(matrix) - 1
 var riskLevel = 1
+var highestValue = 9
 
 fun emptyIfOutOfBounds(p: Point): Array<ValuePoint> =
     if (p.x < 0 or p.y < 0 or p.x > upperBoundX or p.y > upperBoundY)
@@ -41,8 +42,8 @@ var lowPoints = (matrix flatMap ((row, yy) ->
         var point: Point = {x: xx, y: yy}
         var element: Number = matrix[yy][xx]
         var valuePoint: ValuePoint = {point: point, element: element} as ValuePoint
-        var values = (valuesOfAdjacents(point) - null) map $.element
-        var minimum = min([element] ++ values)
+        var values = valuesOfAdjacents(point) map $.element
+        var minimum = min(values + element)
         ---
         if(minimum == element and !contains(values, element)) 
             [valuePoint] 
@@ -50,5 +51,14 @@ var lowPoints = (matrix flatMap ((row, yy) ->
     })
 ))
 
+fun basin(value: ValuePoint, visited: Array<ValuePoint>): Array<ValuePoint> = 
+    if((visited contains value) or value.element == highestValue)
+        [value]
+    else do {
+        var neighbours: Array<ValuePoint> = valuesOfAdjacents(value.point)
+        ---
+         neighbours reduce ((lowPoint, accumulator = visited + value) -> (accumulator ++ basin(lowPoint, accumulator) distinctBy $ ))
+    }
+
 ---
-sum((lowPoints map $.element + 1))
+lowPoints map ((lowPoint) -> sizeOf(basin(lowPoint, []) filter $.element != highestValue)) orderBy -$ take 3 reduce ((item, accumulator = 1) ->  item * accumulator)
